@@ -4,7 +4,7 @@ using ControlGastos.Application.Dtos;
 using ControlGastos.Domain.Entities;
 using ControlGastos.Infrastructure.Interfaces;
 
-namespace ControlGastos.Application.Service;
+namespace ControlGastos.Application.Services;
 
 public class FacturaService : BaseService, IFacturaService
 {

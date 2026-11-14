@@ -5,7 +5,7 @@ using ControlGastos.Domain.Entities;
 using ControlGastos.Infrastructure.Interfaces;
 using ControlGastos.Infrastructure.Models;
 
-namespace ControlGastos.Application.Service;
+namespace ControlGastos.Application.Services;
 
 public class PresupuestoService : BaseService, IPresupuestoService
 {

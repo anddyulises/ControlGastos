@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ControlGastos.Application.Contract;
-using ControlGastos.Application.Service;
+using ControlGastos.Application.Services;
 using ControlGastos.Infrastructure.Context;
 using ControlGastos.Infrastructure.Interfaces;
 using ControlGastos.Infrastructure.Repositories;
