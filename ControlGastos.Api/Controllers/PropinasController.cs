@@ -1,87 +1,39 @@
 using Microsoft.AspNetCore.Mvc;
-using ControlGastos.Domain.Entities;
-using ControlGastos.Infrastructure.Exceptions;
-using ControlGastos.Infrastructure.Interfaces;
-using ControlGastos.Infrastructure.Models;
+using ControlGastos.Application.Contract;
+using ControlGastos.Application.Dtos;
 
 namespace ControlGastos.Api.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
-public class PropinasController : ControllerBase
+public class PropinasController : BaseApiController
 {
-    private readonly IPropinaRepository _repo;
+    private readonly IPropinaService _service;
 
-    public PropinasController(IPropinaRepository repo)
+    public PropinasController(IPropinaService service)
     {
-        _repo = repo;
+        _service = service;
     }
-
-    private static PropinaModel ToModel(Propina p) => new()
-    {
-        Id = p.Id,
-        Descripcion = p.Descripcion,
-        Monto = p.Monto,
-        Fecha = p.Fecha,
-        Beneficiario = p.Beneficiario,
-        PresupuestoId = p.PresupuestoId
-    };
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PropinaModel>>> GetAll()
-        => Ok((await _repo.GetAllAsync()).Select(ToModel));
+    public async Task<IActionResult> GetAll() => FromResult(await _service.GetAllAsync());
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<PropinaModel>> GetById(int id)
-    {
-        var p = await _repo.GetByIdAsync(id);
-        return p is null ? NotFound() : Ok(ToModel(p));
-    }
+    public async Task<IActionResult> GetById(int id) => FromResult(await _service.GetByIdAsync(id));
 
     [HttpGet("by-presupuesto/{presupuestoId}")]
-    public async Task<ActionResult<IEnumerable<PropinaModel>>> GetByPresupuesto(int presupuestoId)
-        => Ok(await _repo.GetPropinasByPresupuestoAsync(presupuestoId));
+    public async Task<IActionResult> GetByPresupuesto(int presupuestoId)
+        => FromResult(await _service.GetByPresupuestoAsync(presupuestoId));
 
     [HttpPost]
-    public async Task<ActionResult<PropinaModel>> Create(PropinaModel m)
-    {
-        try
-        {
-            var p = await _repo.AddAsync(new Propina
-            {
-                Descripcion = m.Descripcion,
-                Monto = m.Monto,
-                Fecha = m.Fecha == default ? DateTime.UtcNow : m.Fecha,
-                Beneficiario = m.Beneficiario,
-                PresupuestoId = m.PresupuestoId
-            });
-            return CreatedAtAction(nameof(GetById), new { id = p.Id }, ToModel(p));
-        }
-        catch (PropinaException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
+    public async Task<IActionResult> Create(AddPropinaDto dto) => FromResult(await _service.AddAsync(dto));
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, PropinaModel m)
+    public async Task<IActionResult> Update(int id, UpdatePropinaDto dto)
     {
-        var p = await _repo.GetByIdAsync(id);
-        if (p is null) return NotFound();
-        p.Descripcion = m.Descripcion;
-        p.Monto = m.Monto;
-        p.Fecha = m.Fecha == default ? p.Fecha : m.Fecha;
-        p.Beneficiario = m.Beneficiario;
-        p.PresupuestoId = m.PresupuestoId;
-        await _repo.UpdateAsync(p);
-        return NoContent();
+        dto.Id = id;
+        return FromResult(await _service.UpdateAsync(dto));
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
-    {
-        if (!await _repo.ExistsAsync(id)) return NotFound();
-        await _repo.DeleteAsync(id);
-        return NoContent();
-    }
+    public async Task<IActionResult> Delete(int id) => FromResult(await _service.RemoveAsync(id));
 }

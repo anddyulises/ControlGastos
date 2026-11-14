@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using ControlGastos.Application.Contract;
+using ControlGastos.Application.Service;
 using ControlGastos.Infrastructure.Context;
 using ControlGastos.Infrastructure.Interfaces;
 using ControlGastos.Infrastructure.Repositories;
@@ -15,6 +17,10 @@ builder.Services.AddDbContext<ControlGastosContext>(options =>
 builder.Services.AddScoped<IPresupuestoRepository, PresupuestoRepository>();
 builder.Services.AddScoped<IFacturaRepository, FacturaRepository>();
 builder.Services.AddScoped<IPropinaRepository, PropinaRepository>();
+
+builder.Services.AddScoped<IPresupuestoService, PresupuestoService>();
+builder.Services.AddScoped<IFacturaService, FacturaService>();
+builder.Services.AddScoped<IPropinaService, PropinaService>();
 
 var app = builder.Build();
 

@@ -1,90 +1,39 @@
 using Microsoft.AspNetCore.Mvc;
-using ControlGastos.Domain.Entities;
-using ControlGastos.Infrastructure.Exceptions;
-using ControlGastos.Infrastructure.Interfaces;
-using ControlGastos.Infrastructure.Models;
+using ControlGastos.Application.Contract;
+using ControlGastos.Application.Dtos;
 
 namespace ControlGastos.Api.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
-public class FacturasController : ControllerBase
+public class FacturasController : BaseApiController
 {
-    private readonly IFacturaRepository _repo;
+    private readonly IFacturaService _service;
 
-    public FacturasController(IFacturaRepository repo)
+    public FacturasController(IFacturaService service)
     {
-        _repo = repo;
+        _service = service;
     }
-
-    private static FacturaModel ToModel(Factura f) => new()
-    {
-        Id = f.Id,
-        Descripcion = f.Descripcion,
-        Monto = f.Monto,
-        Fecha = f.Fecha,
-        Establecimiento = f.Establecimiento,
-        NumeroFactura = f.NumeroFactura,
-        PresupuestoId = f.PresupuestoId
-    };
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<FacturaModel>>> GetAll()
-        => Ok((await _repo.GetAllAsync()).Select(ToModel));
+    public async Task<IActionResult> GetAll() => FromResult(await _service.GetAllAsync());
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<FacturaModel>> GetById(int id)
-    {
-        var f = await _repo.GetByIdAsync(id);
-        return f is null ? NotFound() : Ok(ToModel(f));
-    }
+    public async Task<IActionResult> GetById(int id) => FromResult(await _service.GetByIdAsync(id));
 
     [HttpGet("by-presupuesto/{presupuestoId}")]
-    public async Task<ActionResult<IEnumerable<FacturaModel>>> GetByPresupuesto(int presupuestoId)
-        => Ok(await _repo.GetFacturasByPresupuestoAsync(presupuestoId));
+    public async Task<IActionResult> GetByPresupuesto(int presupuestoId)
+        => FromResult(await _service.GetByPresupuestoAsync(presupuestoId));
 
     [HttpPost]
-    public async Task<ActionResult<FacturaModel>> Create(FacturaModel m)
-    {
-        try
-        {
-            var f = await _repo.AddAsync(new Factura
-            {
-                Descripcion = m.Descripcion,
-                Monto = m.Monto,
-                Fecha = m.Fecha == default ? DateTime.UtcNow : m.Fecha,
-                Establecimiento = m.Establecimiento,
-                NumeroFactura = m.NumeroFactura,
-                PresupuestoId = m.PresupuestoId
-            });
-            return CreatedAtAction(nameof(GetById), new { id = f.Id }, ToModel(f));
-        }
-        catch (FacturaException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
+    public async Task<IActionResult> Create(AddFacturaDto dto) => FromResult(await _service.AddAsync(dto));
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, FacturaModel m)
+    public async Task<IActionResult> Update(int id, UpdateFacturaDto dto)
     {
-        var f = await _repo.GetByIdAsync(id);
-        if (f is null) return NotFound();
-        f.Descripcion = m.Descripcion;
-        f.Monto = m.Monto;
-        f.Fecha = m.Fecha == default ? f.Fecha : m.Fecha;
-        f.Establecimiento = m.Establecimiento;
-        f.NumeroFactura = m.NumeroFactura;
-        f.PresupuestoId = m.PresupuestoId;
-        await _repo.UpdateAsync(f);
-        return NoContent();
+        dto.Id = id;
+        return FromResult(await _service.UpdateAsync(dto));
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
-    {
-        if (!await _repo.ExistsAsync(id)) return NotFound();
-        await _repo.DeleteAsync(id);
-        return NoContent();
-    }
+    public async Task<IActionResult> Delete(int id) => FromResult(await _service.RemoveAsync(id));
 }

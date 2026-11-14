@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ControlGastos.Application\ControlGastos.Application.csproj" />
     <ProjectReference Include="..\ControlGastos.Infrastructure\ControlGastos.Infrastructure.csproj" />
     <ProjectReference Include="..\ControlGastos.Domain\ControlGastos.Domain.csproj" />
   </ItemGroup>
